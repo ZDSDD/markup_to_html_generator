@@ -54,7 +54,7 @@ class TestTextNode(unittest.TestCase):
         )
 
     def test_split_nodes_delimeter(self):
-        node = TextNode("This is text with a `code block` word", TextType.CODE)
+        node = TextNode("This is text with a `code block` word", TextType.TEXT)
         new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
 
         expected = [

@@ -61,9 +61,30 @@ class TestInlineMarkdown(unittest.TestCase):
         node = TextNode("**bold** and *italic*", TextType.TEXT)
         new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
         new_nodes = split_nodes_delimiter(new_nodes, "*", TextType.ITALIC)
+
         self.assertListEqual(
             [
                 TextNode("bold", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+            ],
+            new_nodes,
+        )
+    
+    #todo: FIX THIS
+    def test_delim_italic_and_bold(self):
+        node = TextNode("aa **bold** and *italic*", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "*", TextType.ITALIC)
+        new_nodes = split_nodes_delimiter(new_nodes, "**", TextType.BOLD)
+        print()
+        print()
+        print(new_nodes)
+        print()
+        print()
+        self.assertListEqual(
+            [
+                TextNode("aa ", TextType.TEXT),
+                TextNode("bold", TextType.TEXT), #WRONG!!!!!!!!!!!!!!!
                 TextNode(" and ", TextType.TEXT),
                 TextNode("italic", TextType.ITALIC),
             ],
@@ -81,3 +102,14 @@ class TestInlineMarkdown(unittest.TestCase):
             ],
             new_nodes,
         )
+    def test_split_nodes_delimiter(self):
+        node = TextNode("This is text with a `code block` word", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
+
+        expected = [
+            TextNode("This is text with a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" word", TextType.TEXT),
+        ]
+
+        self.assertListEqual(new_nodes, expected)

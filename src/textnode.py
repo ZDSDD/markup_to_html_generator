@@ -44,28 +44,27 @@ def text_node_to_html_node(text_node: TextNode):
         case _:
             raise ValueError(f"Invalid text type: {text_node.text_type}")
 
-def split_nodes_delimiter(old_nodes: list[TextNode], delimiter: str, text_type: TextType)-> list[TextNode]:
-    # Escape delimiter for regex
-    escaped_delimiter = re.escape(delimiter)
-    nodes = []
-    for node in old_nodes:
-        input_text = node.text
-        # Construct the regex pattern dynamically
-        pattern = re.compile(f'{escaped_delimiter}(.*?){escaped_delimiter}')
+
+def split_nodes_delimiter(old_nodes, delimiter, text_type):
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
+            continue
+
+        split_nodes = []
+        sections = old_node.text.split(delimiter)
         
-        last_end = 0
-        
-        for match in pattern.finditer(input_text):
-            # Add the text before the delimiter
-            if match.start() > last_end:
-                nodes.append(TextNode(input_text[last_end:match.start()], TextType.TEXT))
+        if len(sections) % 2 == 0:
+            raise ValueError("Invalid markdown, formatted section not closed")
+
+        for i in range(len(sections)):
+            if sections[i] == "":
+                continue
             
-            # Add the text between delimiters
-            nodes.append(TextNode(match.group(1), text_type=text_type))
-            last_end = match.end()
+            current_text_type = text_type if i % 2 == 1 else TextType.TEXT
+            split_nodes.append(TextNode(sections[i], current_text_type))
         
-        # Add the remaining text after the last delimiter
-        if last_end < len(input_text):
-            nodes.append(TextNode(input_text[last_end:], TextType.TEXT))
+        new_nodes.extend(split_nodes)
     
-    return nodes
+    return new_nodes
