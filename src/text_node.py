@@ -1,4 +1,4 @@
-from htmlnode import LeafNode
+from .htmlnode import LeafNode
 import re
 from enum import Enum, auto
 
@@ -77,23 +77,44 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 
 
 def extract_markdown_images(text):
-    matches = re.findall(r".!\[(.*?)\]\((.*?)\)", text)
+    matches = re.findall(r"\!\[(.*?)\]\((.*?)\)", text)
     return matches
 
 
 def extract_markdown_links(text) -> list[tuple[str, str]]:
-    matches = re.findall(r"\[(.*?)\]\((.*?)\)", text)
+    matches = re.findall(r"(?<!\!)\[(.*?)\]\((.*?)\)", text)
     return matches
 
 
 def split_nodes_image(old_nodes: list[TextNode]):
-    return split_image_link_util(TextType.IMAGE, old_nodes)
+    result = []
+
+    # here will be a loop over all nodes
+    for node in old_nodes:
+        links = extract_markdown_images(node.text)
+        # If the node doesn't contain any link, just append it to the result list as it is.
+        if len(links) == 0:
+            result.append(node)
+            continue
+        text = node.text
+        for link in links:
+            index_of_link = text.index(link[0])
+            len_to_delete = len(link[0]) + len(link[1]) + 4  # brackets
+            text_node = text[0 : index_of_link - 2]
+            text = text[index_of_link - 1 :]
+            if text_node != "":
+                result.append(TextNode(text=text_node, text_type=TextType.TEXT))
+            if link[0] != "":
+                result.append(
+                    TextNode(text=link[0], url=link[1], text_type=TextType.IMAGE)
+                )
+            text = text[len_to_delete:]
+        
+        if len(text) > 0:
+            result.append(TextNode(text=text, text_type=TextType.TEXT))
+    return result
 
 def split_nodes_link(old_nodes: list[TextNode]):
-    return split_image_link_util(TextType.LINK, old_nodes)
-
-def split_image_link_util(text_type:TextType, old_nodes: list[TextNode]) -> list[TextNode]:
-    
     result = []
 
     # here will be a loop over all nodes
@@ -105,19 +126,43 @@ def split_image_link_util(text_type:TextType, old_nodes: list[TextNode]) -> list
             continue
 
         text = node.text
-        print()
         for link in links:
             index_of_link = text.index(link[0])
             len_to_delete = len(link[0]) + len(link[1]) + 4  # brackets
-            text_node = text[0 : index_of_link - (1 if text_type == TextType.LINK else 2)]
+            text_node = text[0 : index_of_link - 1]
             text = text[index_of_link - 1 : -1]
             if text_node != "":
                 result.append(TextNode(text=text_node, text_type=TextType.TEXT))
             if link[0] != "":
                 result.append(
-                    TextNode(text=link[0], url=link[1], text_type=text_type)
+                    TextNode(text=link[0], url=link[1], text_type=TextType.LINK)
                 )
 
-            text = text[len_to_delete:-1]
+            text = text[len_to_delete:]
 
     return result
+    
+
+
+def text_to_textnodes(text):
+    result = [TextNode(text,TextType.TEXT)]
+    print_nodes(result)
+    result = split_nodes_delimiter(result, '**', TextType.BOLD)
+    print_nodes(result)
+    result = split_nodes_delimiter(result, '*', TextType.ITALIC)
+    print_nodes(result)
+    result = split_nodes_delimiter(result, '`', TextType.CODE)
+    print_nodes(result)
+    result = split_nodes_link(result)
+    print_nodes(result, 'Po linku')
+    result = split_nodes_image(result)
+    print_nodes(result, 'po zdjeciach')
+    return result
+
+
+def print_nodes(nodes, title = 'niestety nie ma tytlu :()'):
+    print(title)
+    for node in nodes:
+        print(node)
+    print()
+    print()

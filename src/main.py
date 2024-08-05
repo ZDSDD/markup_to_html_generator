@@ -1,4 +1,4 @@
-from textnode import TextNode
+from src.text_node import TextNode
 
 def main(args=None):
     dummy = TextNode("text", "typeeee", "google.com")

@@ -1,5 +1,5 @@
 import unittest
-from textnode import TextType, TextNode, split_nodes_delimiter, split_nodes_image, split_nodes_link
+from src.text_node import TextType, TextNode, split_nodes_delimiter, split_nodes_image, split_nodes_link
 
 
 class TestInlineMarkdown(unittest.TestCase):
@@ -221,9 +221,6 @@ class TestInlineMarkdown(unittest.TestCase):
         self.assertListEqual(new_nodes, expected)
 
         
-        
-        
-
     def test_split_node_link_empty_beginning(self):
         node = TextNode(
             "[to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
@@ -286,3 +283,6 @@ class TestInlineMarkdown(unittest.TestCase):
             TextNode("to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"),
         ]
         self.assertListEqual(new_nodes, expected)
+
+# if __name__ == '__main__':
+#     unittest.main()

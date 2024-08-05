@@ -2,7 +2,7 @@ from contextlib import AbstractContextManager
 from typing import Any
 import unittest
 
-from htmlnode import HTMLNode, LeafNode, ParentNode
+from src.htmlnode import HTMLNode, LeafNode, ParentNode
 
 
 node = HTMLNode(
@@ -23,14 +23,6 @@ class TestHTMLNode(unittest.TestCase):
     def test_repr(self):
         self.assertEqual(f'{node}', f'HTMLNode({node.tag}, {node.value}, {node.children}, {node.props})')
         
-    
-if __name__ == "__main__":
-    unittest.main()
-
-
-class TestLeafNode(unittest.TestCase):
-    def subTest(self, msg: Any = ..., **params: Any) -> AbstractContextManager[None, bool | None]:
-        return super().subTest(msg, **params)
 
     def test_to_html(self):
         actual1=LeafNode("p", "This is a paragraph of text.")
@@ -39,10 +31,6 @@ class TestLeafNode(unittest.TestCase):
         self.assertEqual(actual1.to_html(), '<p>This is a paragraph of text.</p>')
         self.assertEqual(actual2.to_html(), '<a href="https://www.google.com">Click me!</a>')
 
-class TestParentNode(unittest.TestCase):
-    def subTest(self, msg: Any = ..., **params: Any) -> AbstractContextManager[None, bool | None]:
-        return super().subTest(msg, **params)
-    
     def test_to_html_no_tag(self):
         node = ParentNode(
             tag="p",
@@ -115,3 +103,6 @@ class TestParentNode(unittest.TestCase):
         )
         
         self.assertRaises(ValueError, node.to_html)
+
+# if __name__ == '__main__':
+#     unittest.main()

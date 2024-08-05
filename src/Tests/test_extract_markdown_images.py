@@ -1,6 +1,6 @@
 import unittest
 
-from textnode import extract_markdown_images, extract_markdown_links
+from src.text_node import extract_markdown_images, extract_markdown_links
 
 
 class TestExtractMarkdownImages(unittest.TestCase):
@@ -15,3 +15,6 @@ class TestExtractMarkdownImages(unittest.TestCase):
         result = extract_markdown_links(text)
         expected = [("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")]
         self.assertListEqual(result, expected)
+
+# if __name__ == '__main__':
+#     unittest.main()
