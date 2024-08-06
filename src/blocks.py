@@ -1,13 +1,13 @@
 from enum import Enum, auto
-
+import re
 
 class BlockType(Enum):
     PARAGRAPH = auto()
     HEADING = auto()
     CODE = auto()
-    quote = auto()
-    unordered_list = auto()
-    ordered_list = auto()
+    QUOTE = auto()
+    UNORDERED_LIST = auto()
+    ORDERED_LIST = auto()
 
 
 def markdown_to_block(markdown: str) -> list[str]:
@@ -19,9 +19,26 @@ def block_to_block_type(text_block: str) -> BlockType:
         return BlockType.HEADING
     elif isCode(text_block):
         return BlockType.CODE
+    elif isQuote(text_block):
+        return BlockType.QUOTE
+    elif isOrderedList(text_block):
+        return BlockType.ORDERED_LIST
 
     return BlockType.PARAGRAPH
 
+def isOrderedList(text_block: str):
+    lines = text_block.split('\n')
+    for index, line in enumerate(lines, start=1):
+        if len(line) < 3:
+            return False
+        if line[0] != str(index):
+            return False
+        if line[2] != ' ':
+            return False
+    return True
+
+def isQuote(string :str):
+    return string[0] == '>'
 
 def isCode(string: str):
     string = string.strip()

@@ -45,11 +45,27 @@ This is a paragraph of text. It has some **bold** and *italic* words inside of i
 
 
     # CODE BLOCKS
-    def test_code_block(self):
+    def test_code_block_inline(self):
         self.assertEqual(block_to_block_type("```this is code```"), BlockType.CODE)
-    def test_code_block(self):
+    def test_code_block_newline(self):
         self.assertEqual(block_to_block_type("""
                                             ```
                                             this is code
                                             ```
                                              """), BlockType.CODE)
+
+    
+    # QUOTE BLOCKS
+    def test_quote_block(self):
+        self.assertEqual(block_to_block_type(">AAA"), BlockType.QUOTE)
+    def test_quote_block_bad(self):
+        self.assertNotEqual(block_to_block_type(" >AAA"), BlockType.QUOTE)
+
+    # ORDERED LIST
+    
+    def test_ordered_list_space_before(self):
+        self.assertNotEqual(block_to_block_type(" 1."), BlockType.ORDERED_LIST)
+    def test_ordered_list_no_space_after(self):
+        self.assertNotEqual(block_to_block_type("1."), BlockType.ORDERED_LIST)
+    def test_ordered_list_good(self):
+        self.assertEqual(block_to_block_type("1. "), BlockType.ORDERED_LIST)
