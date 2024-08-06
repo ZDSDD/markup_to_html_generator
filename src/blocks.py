@@ -23,6 +23,8 @@ def block_to_block_type(text_block: str) -> BlockType:
         return BlockType.QUOTE
     elif isOrderedList(text_block):
         return BlockType.ORDERED_LIST
+    elif isUnOrderedList(text_block):
+        return BlockType.UNORDERED_LIST
 
     return BlockType.PARAGRAPH
 
@@ -34,6 +36,15 @@ def isOrderedList(text_block: str):
         if line[0] != str(index):
             return False
         if line[2] != ' ':
+            return False
+    return True
+
+def isUnOrderedList(text_block: str):
+    lines = text_block.split('\n')
+    for line in lines:
+        if len(line) < 1:
+            return False
+        if line[0] != '*' and line[0] != '-':
             return False
     return True
 

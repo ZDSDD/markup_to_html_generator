@@ -62,10 +62,20 @@ This is a paragraph of text. It has some **bold** and *italic* words inside of i
         self.assertNotEqual(block_to_block_type(" >AAA"), BlockType.QUOTE)
 
     # ORDERED LIST
-    
     def test_ordered_list_space_before(self):
         self.assertNotEqual(block_to_block_type(" 1."), BlockType.ORDERED_LIST)
     def test_ordered_list_no_space_after(self):
         self.assertNotEqual(block_to_block_type("1."), BlockType.ORDERED_LIST)
     def test_ordered_list_good(self):
         self.assertEqual(block_to_block_type("1. "), BlockType.ORDERED_LIST)
+
+    # UNORDERED LIST
+    def test_unordered_list_space_before(self):
+        self.assertNotEqual(block_to_block_type("something+ "), BlockType.UNORDERED_LIST)
+    def test_unordered_list_no_space_after(self):
+        self.assertNotEqual(block_to_block_type("+nospace"), BlockType.UNORDERED_LIST)
+    def test_unordered_list_good(self):
+        self.assertEqual(block_to_block_type("- "), BlockType.UNORDERED_LIST)
+    def test_unordered_list_good_also(self):
+        self.assertEqual(block_to_block_type("* "), BlockType.UNORDERED_LIST)
+        
