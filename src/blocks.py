@@ -1,7 +1,7 @@
 from enum import Enum, auto
 
-from .htmlnode import HTMLNode, ParentNode, LeafNode
-
+from htmlnode import HTMLNode, ParentNode, LeafNode
+from text_node import TextNode, text_node_to_html_node, text_to_textnodes
 
 class BlockType(Enum):
     PARAGRAPH = auto()
@@ -15,6 +15,12 @@ class BlockType(Enum):
 def markdown_to_block(markdown: str) -> list[str]:
     return markdown.split("\n\n")
 
+def extract_title(markdown: str):
+    blocks = markdown_to_block(markdown)
+    for block in blocks:
+        if isHeading(block) and get_heading_level(block) == 1:
+            return format_heading_to_html(block)
+    raise Exception("No title")
 
 def block_to_block_type(text_block: str) -> BlockType:
     if isHeading(text_block):
@@ -51,6 +57,8 @@ def isUnOrderedList(text_block: str):
             return False
         if line[0] != "*" and line[0] != "-":
             return False
+        if line[1] != " ":
+            return False
     return True
 
 
@@ -84,35 +92,33 @@ def isHeading(string: str) -> bool:
     return True
 
 
-def markdown_to_html_node(markdown):
+def markdown_to_html_node(markdown) -> ParentNode:
     blocks = markdown_to_block(markdown)
     blocks = [block.strip('\n') for block in blocks]
     child_nodes: list[HTMLNode] = []
     for block in blocks:
         block_type = block_to_block_type(block)
         if block_type == BlockType.HEADING:
-            heading_node = LeafNode(f'h{get_heading_level(block)}', format_heading_to_html(block))
-            child_nodes.append(heading_node)
+            child_nodes.append(ParentNode(f'h{get_heading_level(block)}', get_nodes_from_block(format_heading_to_html(block))))
         if block_type == BlockType.CODE:
-            code_node = LeafNode("code", format_code_for_html(block))
-            code_wrapper_node = ParentNode("pre", [code_node])
-            child_nodes.append(code_wrapper_node)
+            child_nodes.append(ParentNode("pre", [ParentNode("Code", get_nodes_from_block(format_code_for_html(block)))]))
         if block_type == BlockType.QUOTE:
-            quote_node = LeafNode("blockquote", format_quote_to_html(block))
-            child_nodes.append(quote_node)
+            child_nodes.append(ParentNode("blockquote", get_nodes_from_block(format_quote_to_html(block))))
         if block_type == BlockType.UNORDERED_LIST:
-            ul_items = [LeafNode("li",item) for item in format_list_to_html(block)]
-            parent_ulist = ParentNode('ul', ul_items)
-            child_nodes.append(parent_ulist)
+            child_nodes.append(ParentNode('ul', get_nodes_for_list(format_un_ordered_list_to_html(block))))
         if block_type == BlockType.ORDERED_LIST:
-            ul_items = [LeafNode("li",item) for item in format_list_to_html(block)]
-            parent_ulist = ParentNode('ol', ul_items)
-            child_nodes.append(parent_ulist)
+            child_nodes.append(ParentNode('ol', get_nodes_for_list(format_ordered_list_to_html(block))))
         if block_type == BlockType.PARAGRAPH:
-            child_nodes.append(LeafNode('p', block))
-            
-        for node in child_nodes:
-            print(node.to_html())
+            child_nodes.append(ParentNode('p', get_nodes_from_block(block)))
+                
+
+    return ParentNode('div', child_nodes)
+
+def get_nodes_for_list(list_items):
+    return [ParentNode('li', get_nodes_from_block(item)) for item in list_items]
+
+def get_nodes_from_block(block):
+    return [text_node_to_html_node(text_node) for text_node in text_to_textnodes(block)]
 
 def get_heading_level(block: str) -> int:
     counter:int = 0
@@ -124,82 +130,17 @@ def get_heading_level(block: str) -> int:
     return counter
 
 def format_heading_to_html(block: str) -> str:
-    return block[get_heading_level(block):]
+    return block[get_heading_level(block) + 1:]
 
-def format_list_to_html(block: str) -> list[str]:
+def format_un_ordered_list_to_html(block: str) -> list[str]:
     return [str[2:] for str in block.split('\n')]
+
+def format_ordered_list_to_html(block: str) -> list[str]:
+    return [str[3:] for str in block.split('\n')]
 
 def format_code_for_html(code_block):
     return code_block[3:-3]
 
 
 def format_quote_to_html(code_block):
-    return code_block[1:]
-
-
-if __name__ == "__main__":
-    markdown_to_html_node(
-        """## Installation
-
-### Download the project
-
-Download `.zip` file or run commads from your favourite CLI
-
-```bash
-git clone https://github.com/ZDSDD/IoT_OpcAgent.git
-cd IoT_OpcAgent
-```
-
-### How to run IoT Agent
-
-To run the application, you can [build it yourself](https://stackoverflow.com/questions/44074121/build-net-core-console-application-to-output-an-exe), or run the OpcAgent.exe
-
-### How to run Azure Function
-
-As the above, or [deploy](#deploy-to-azure) it to Azure so it can run constantly and listen for the requests.
-
-## Configuration
-
-This section will show which local variables need to be set up, both on Azure App and on the OPC Agent.
-
-### Local Configuration for Function Apps
-
-This sample local.settings.json file should be located in the root folder of the FunctionAppsDemo solution.
-
-```json
-{
-    "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "AzureWebJobsStorageConnectionStringValue",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-    "ServiceBusConnectionString": "<my_service_bus_connection_string>",
-    "QueueNameProduction": "<name_of_my_created_queue1>",
-    "QueueNameErrorEvent": "<name_of_my_created_queue2>",
-    "QueueNameThreeErrors": "<name_of_my_created_queue3>",
-    "ThreeErrorsBlobContainerName": "<blob_container_name_in_azure>",
-    "productionBlobContainerName": "<blob_container_name_in_azure>",
-    "IoTHubConnectionString": "<my_IoTHuB_connection_string>",
-    "Storage": "<my_storage_connection_string>",
-    "CommunicationServiceConnectionString": "<my_communication_service_connection_string>",
-    "senderAddress": "<email_that_sends_emails>",
-    "emailTo": "<some@mail.com>"
-  }
-}
-```
-
-* This is the first list item in a list block
-* This is a list item
-* This is another list item
-
-1. lsit1
-2. l;ist2
-3. ogórek
-
-
-### Deploy to Azure 
-
-If deployed on Azure, navigate to Settings -> Environment variables -> **Add application setting**.
-
->Official Microsoft documentation app-service-settings [link](https://learn.microsoft.com/en-us/azure/app-service/reference-app-settings)
-"""
-    )
+    return code_block[1:].strip('\n').strip()
