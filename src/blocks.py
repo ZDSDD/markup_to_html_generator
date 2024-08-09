@@ -1,5 +1,7 @@
 from enum import Enum, auto
-import re
+
+from .htmlnode import HTMLNode, ParentNode, LeafNode
+
 
 class BlockType(Enum):
     PARAGRAPH = auto()
@@ -28,34 +30,33 @@ def block_to_block_type(text_block: str) -> BlockType:
 
     return BlockType.PARAGRAPH
 
+
 def isOrderedList(text_block: str):
-    print()
-    lines = text_block.split('\n')
+    lines = text_block.split("\n")
     for index, line in enumerate(lines, start=1):
-        print(line, index)
         if len(line) < 3:
-            print("false 1")
             return False
         if line[0] != str(index):
-            print("flase 2")
             return False
-        if line[2] != ' ':
-            print("false3")
+        if line[2] != " ":
             return False
-        
+
     return True
 
+
 def isUnOrderedList(text_block: str):
-    lines = text_block.split('\n')
+    lines = text_block.split("\n")
     for line in lines:
         if len(line) < 1:
             return False
-        if line[0] != '*' and line[0] != '-':
+        if line[0] != "*" and line[0] != "-":
             return False
     return True
 
-def isQuote(string :str):
-    return string[0] == '>'
+
+def isQuote(string: str):
+    return string[0] == ">"
+
 
 def isCode(string: str):
     string = string.strip()
@@ -82,14 +83,63 @@ def isHeading(string: str) -> bool:
             return False
     return True
 
+
 def markdown_to_html_node(markdown):
     blocks = markdown_to_block(markdown)
+    blocks = [block.strip('\n') for block in blocks]
+    child_nodes: list[HTMLNode] = []
     for block in blocks:
-        print(block_to_block_type(block))
+        block_type = block_to_block_type(block)
+        if block_type == BlockType.HEADING:
+            heading_node = LeafNode(f'h{get_heading_level(block)}', format_heading_to_html(block))
+            child_nodes.append(heading_node)
+        if block_type == BlockType.CODE:
+            code_node = LeafNode("code", format_code_for_html(block))
+            code_wrapper_node = ParentNode("pre", [code_node])
+            child_nodes.append(code_wrapper_node)
+        if block_type == BlockType.QUOTE:
+            quote_node = LeafNode("blockquote", format_quote_to_html(block))
+            child_nodes.append(quote_node)
+        if block_type == BlockType.UNORDERED_LIST:
+            ul_items = [LeafNode("li",item) for item in format_list_to_html(block)]
+            parent_ulist = ParentNode('ul', ul_items)
+            child_nodes.append(parent_ulist)
+        if block_type == BlockType.ORDERED_LIST:
+            ul_items = [LeafNode("li",item) for item in format_list_to_html(block)]
+            parent_ulist = ParentNode('ol', ul_items)
+            child_nodes.append(parent_ulist)
+        if block_type == BlockType.PARAGRAPH:
+            child_nodes.append(LeafNode('p', block))
+            
+        for node in child_nodes:
+            print(node.to_html())
 
-        
-if __name__ == '__main__':
-    markdown_to_html_node("""## Installation
+def get_heading_level(block: str) -> int:
+    counter:int = 0
+    for character in block:
+        if character == '#':
+            counter += 1
+        else:
+            break
+    return counter
+
+def format_heading_to_html(block: str) -> str:
+    return block[get_heading_level(block):]
+
+def format_list_to_html(block: str) -> list[str]:
+    return [str[2:] for str in block.split('\n')]
+
+def format_code_for_html(code_block):
+    return code_block[3:-3]
+
+
+def format_quote_to_html(code_block):
+    return code_block[1:]
+
+
+if __name__ == "__main__":
+    markdown_to_html_node(
+        """## Installation
 
 ### Download the project
 
@@ -151,4 +201,5 @@ This sample local.settings.json file should be located in the root folder of the
 If deployed on Azure, navigate to Settings -> Environment variables -> **Add application setting**.
 
 >Official Microsoft documentation app-service-settings [link](https://learn.microsoft.com/en-us/azure/app-service/reference-app-settings)
-""")
+"""
+    )
