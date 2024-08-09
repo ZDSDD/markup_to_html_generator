@@ -27,21 +27,19 @@ This is a paragraph of text. It has some **bold** and *italic* words inside of i
     def test_no_heading(self):
         self.assertEqual(block_to_block_type("cos tam"), BlockType.PARAGRAPH)
     def test_too_many_heading(self):
-        self.assertEqual(block_to_block_type(" #######cos tam"), BlockType.PARAGRAPH)
-    def test_heading_no_space(self):
-        self.assertEqual(block_to_block_type("#cos tam"), BlockType.PARAGRAPH)
+        self.assertEqual(block_to_block_type("#######cos tam"), BlockType.PARAGRAPH)
     def test_heading_solo(self):
-        self.assertEqual(block_to_block_type(" #cos tam"), BlockType.HEADING)
+        self.assertEqual(block_to_block_type("#cos tam"), BlockType.HEADING)
     def test_heading_duo(self):
-        self.assertEqual(block_to_block_type(" ##cos tam"), BlockType.HEADING)
+        self.assertEqual(block_to_block_type("##cos tam"), BlockType.HEADING)
     def test_heading_trio(self):
-        self.assertEqual(block_to_block_type(" ###cos tam"), BlockType.HEADING)
+        self.assertEqual(block_to_block_type("###cos tam"), BlockType.HEADING)
     def test_heading_quartet(self):
-        self.assertEqual(block_to_block_type(" ####cos tam"), BlockType.HEADING)
+        self.assertEqual(block_to_block_type("####cos tam"), BlockType.HEADING)
     def test_heading_quintet(self):
-        self.assertEqual(block_to_block_type(" #####cos tam"), BlockType.HEADING)
+        self.assertEqual(block_to_block_type("#####cos tam"), BlockType.HEADING)
     def test_heading_sextet(self):
-        self.assertEqual(block_to_block_type(" ######cos tam"), BlockType.HEADING)
+        self.assertEqual(block_to_block_type("######cos tam"), BlockType.HEADING)
 
 
     # CODE BLOCKS
@@ -68,6 +66,8 @@ This is a paragraph of text. It has some **bold** and *italic* words inside of i
         self.assertNotEqual(block_to_block_type("1."), BlockType.ORDERED_LIST)
     def test_ordered_list_good(self):
         self.assertEqual(block_to_block_type("1. "), BlockType.ORDERED_LIST)
+    def test_ordered_list_very_good(self):
+        self.assertEqual(block_to_block_type("1. \n2. \n3. "), BlockType.ORDERED_LIST)
 
     # UNORDERED LIST
     def test_unordered_list_space_before(self):
